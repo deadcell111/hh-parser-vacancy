@@ -68,7 +68,7 @@ class TextReportPage(QWidget):
             "missing_skills": "Missing Skills",
             "missing_technologies": "Missing Technologies",
             "knowledge_gaps": "Knowledge Gaps",
-            "salary_growth_skills": "Salary Growth Skills",
+
             "summary": "Summary",
         }
         for key, item in value.items():

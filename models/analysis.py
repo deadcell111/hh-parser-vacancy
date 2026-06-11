@@ -8,7 +8,6 @@ from parser.models import VacancyData
 @dataclass
 class MarketSummary:
     vacancies_found: int = 0
-    average_salary: int = 0
     resume_match: int = 0
     unique_skills: int = 0
     top_skills: list[dict[str, object]] = field(default_factory=list)

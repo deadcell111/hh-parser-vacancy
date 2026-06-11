@@ -47,7 +47,7 @@ class ResumeGapPage(QWidget):
         top_map = {row.get("Навык"): row.get("Процент встречаемости", "") for row in state.summary.top_skills}
         rows = [[skill, top_map.get(skill, ""), self._priority(skill, state)] for skill in missing]
         self.model.set_rows(rows)
-        recommendations = result.get("recommendations", []) or result.get("salary_growth_skills", [])
+        recommendations = result.get("recommendations", [])
         self.recommendations.setText("\n".join(f"• {item}" for item in recommendations) if recommendations else "No recommendations yet.")
 
     def _priority(self, skill: str, state: AnalysisState) -> str:

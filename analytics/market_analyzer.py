@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import re
-
 from analyzer.vacancy_analyzer import VacancyAnalyzer
 from models.analysis import MarketSummary
 from parser.models import VacancyData
@@ -17,12 +15,9 @@ class MarketAnalyzer:
         resume_result: dict[str, object] | None = None,
     ) -> MarketSummary:
         stats = self.vacancy_analyzer.build_market_statistics(vacancies)
-        salaries = [self._salary_to_number(vacancy.salary) for vacancy in vacancies]
-        salaries = [salary for salary in salaries if salary > 0]
         skills = {skill["name"] for vacancy in vacancies for skill in vacancy.skills}
         return MarketSummary(
             vacancies_found=len(vacancies),
-            average_salary=round(sum(salaries) / len(salaries)) if salaries else 0,
             resume_match=int((resume_result or {}).get("match_percent", 0)),
             unique_skills=len(skills),
             top_skills=stats["skills"].head(20).to_dict(orient="records") if not stats["skills"].empty else [],
@@ -40,6 +35,3 @@ class MarketAnalyzer:
             "missing_skills": summary.missing_skills,
         }
 
-    def _salary_to_number(self, salary: str) -> int:
-        numbers = [int(value.replace(" ", "")) for value in re.findall(r"\d[\d\s]{2,}", salary or "")]
-        return round(sum(numbers) / len(numbers)) if numbers else 0
