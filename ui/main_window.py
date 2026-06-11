@@ -21,13 +21,11 @@ from resume_checker.resume_checker import ResumeChecker
 from services.market_service import MarketService
 from utils.url_loader import load_urls
 from ui.analytics_pages import TopTablePage
-from ui.dashboard_page import DashboardPage
 from ui.exports_page import ExportsPage
 from ui.market_page import MarketPage
 from ui.navigation import NavigationSidebar
 from ui.settings_page import SettingsPage
 from ui.text_report_page import TextReportPage
-from ui.vacancies_page import VacanciesPage
 from ui.resume_gap_page import ResumeGapPage
 from ai.prompt_builder import PromptBuilder
 
@@ -94,7 +92,13 @@ class AIWorker(QThread):
                     response.get("roadmap", {}),
                 )
 
-            advisor, gap, roadmap = asyncio.run(task())
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                advisor, gap, roadmap = loop.run_until_complete(task())
+            finally:
+                loop.close()
+                asyncio.set_event_loop(None)
             self.completed.emit(advisor, gap, roadmap)
         except Exception as exc:
             self.failed.emit(str(exc))
@@ -151,7 +155,7 @@ class MainWindow(QMainWindow):
         self.url_worker: UrlAnalysisWorker | None = None
         self.ai_worker: AIWorker | None = None
         self.export_worker: ExportWorker | None = None
-        self.current_page_id = "dashboard"
+        self.current_page_id = "market"
         self.dirty_pages: set[str] = set()
         self.loaded_pages: set[str] = set()
 
@@ -166,8 +170,6 @@ class MainWindow(QMainWindow):
         self.sidebar = NavigationSidebar()
         self.stack = QStackedWidget()
         self.pages: dict[str, QWidget] = {
-            "dashboard": DashboardPage(),
-            "vacancies": VacanciesPage(),
             "market": MarketPage(),
             "advisor": TextReportPage("AI Advisor", "ai_advisor"),
             "resume": ResumeGapPage(),
@@ -175,8 +177,7 @@ class MainWindow(QMainWindow):
             "exports": ExportsPage(),
             "settings": SettingsPage(self.config.gemini_api_key, self.config.gemini_model),
         }
-        self.pages["top_skills"] = TopTablePage("ТОП навыков", "top_skills")
-        self.pages["top_duties"] = TopTablePage("ТОП обязанностей", "top_duties")
+        self.pages["top_skills"] = TopTablePage("Ключевые навыки", "top_skills")
         self.pages["top_requirements"] = TopTablePage("ТОП требований", "top_requirements")
 
         content = QWidget()
@@ -188,7 +189,7 @@ class MainWindow(QMainWindow):
         content_layout.addWidget(self.progress)
         content_layout.addWidget(self.stack)
 
-        for page_id in ["dashboard", "vacancies", "market", "top_skills", "top_duties", "top_requirements", "advisor", "resume", "roadmap", "exports", "settings"]:
+        for page_id in ["market", "top_skills", "top_requirements", "advisor", "resume", "roadmap", "exports", "settings"]:
             self.stack.addWidget(self.pages[page_id])
 
         layout.addWidget(self.sidebar)
@@ -197,19 +198,15 @@ class MainWindow(QMainWindow):
 
         self.sidebar.page_changed.connect(self._navigate)
         self.pages["market"].run_requested.connect(self._run_market)  # type: ignore[attr-defined]
-        self.pages["vacancies"].analyze_url_requested.connect(self._analyze_url)  # type: ignore[attr-defined]
-        self.pages["vacancies"].import_requested.connect(self._import_urls)  # type: ignore[attr-defined]
+        self.pages["market"].import_requested.connect(self._import_urls)  # type: ignore[attr-defined]
         self.pages["resume"].resume_upload_requested.connect(self._upload_resume)  # type: ignore[attr-defined]
         self.pages["exports"].export_requested.connect(self._export)  # type: ignore[attr-defined]
         self.pages["settings"].settings_saved.connect(self._save_settings)  # type: ignore[attr-defined]
 
     def _navigate(self, page_id: str) -> None:
         mapping = {
-            "dashboard": "dashboard",
-            "vacancies": "vacancies",
             "market": "market",
             "top_skills": "top_skills",
-            "top_duties": "top_duties",
             "top_requirements": "top_requirements",
             "advisor": "advisor",
             "resume": "resume",
@@ -217,7 +214,7 @@ class MainWindow(QMainWindow):
             "exports": "exports",
             "settings": "settings",
         }
-        target = mapping.get(page_id, "dashboard")
+        target = mapping.get(page_id, "market")
         self.current_page_id = target
         self.stack.setCurrentWidget(self.pages[target])
         self._refresh_page(target)
@@ -229,11 +226,6 @@ class MainWindow(QMainWindow):
         self.market_worker.completed.connect(self._market_completed)
         self.market_worker.failed.connect(self._task_failed)
         self.market_worker.start()
-
-    def _analyze_url(self, url: str) -> None:
-        if not url.strip():
-            return
-        self._run_urls([url.strip()])
 
     def _import_urls(self) -> None:
         path, _ = QFileDialog.getOpenFileName(self, "Import URLs", "", "URL files (*.txt *.csv *.xlsx *.xls);;All files (*.*)")

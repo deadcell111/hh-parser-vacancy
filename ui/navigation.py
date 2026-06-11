@@ -8,11 +8,8 @@ class NavigationSidebar(QFrame):
     page_changed = pyqtSignal(str)
 
     PAGES = [
-        ("dashboard", "🏠  Dashboard"),
-        ("vacancies", "📄  Vacancies"),
         ("market", "📊  Market Analysis"),
-        ("top_skills", "   ТОП навыков"),
-        ("top_duties", "   ТОП обязанностей"),
+        ("top_skills", "   Ключевые навыки"),
         ("top_requirements", "   ТОП требований"),
         ("advisor", "🧠  AI Advisor"),
         ("resume", "📋  Resume Gap Analysis"),
