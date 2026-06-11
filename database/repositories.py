@@ -11,8 +11,9 @@ class VacancyRepository:
         self.database = database
 
     def upsert_many(self, vacancies: list[VacancyData]) -> None:
-        with self.database.connect() as connection:
-            connection.executemany(
+        conn = self.database.connect()
+        try:
+            conn.executemany(
                 """
                 INSERT INTO vacancies(id, title, company, city, salary, url, full_text)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -38,6 +39,9 @@ class VacancyRepository:
                     if vacancy.vacancy_id
                 ],
             )
+            conn.commit()
+        finally:
+            conn.close()
 
 
 class AICacheRepository:
@@ -45,13 +49,19 @@ class AICacheRepository:
         self.database = database
 
     def get(self, cache_key: str) -> dict | None:
-        with self.database.connect() as connection:
-            row = connection.execute("SELECT response_json FROM ai_cache WHERE cache_key = ?", (cache_key,)).fetchone()
-        return json.loads(row["response_json"]) if row else None
+        conn = self.database.connect()
+        try:
+            row = conn.execute(
+                "SELECT response_json FROM ai_cache WHERE cache_key = ?", (cache_key,)
+            ).fetchone()
+            return json.loads(row["response_json"]) if row else None
+        finally:
+            conn.close()
 
     def set(self, cache_key: str, model: str, response: dict) -> None:
-        with self.database.connect() as connection:
-            connection.execute(
+        conn = self.database.connect()
+        try:
+            conn.execute(
                 """
                 INSERT INTO ai_cache(cache_key, model, response_json)
                 VALUES (?, ?, ?)
@@ -59,3 +69,6 @@ class AICacheRepository:
                 """,
                 (cache_key, model, json.dumps(response, ensure_ascii=False)),
             )
+            conn.commit()
+        finally:
+            conn.close()

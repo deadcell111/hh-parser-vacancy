@@ -45,7 +45,7 @@ class ResumeChecker:
         }
 
     def compare_text(self, resume_text: str, vacancies: list[VacancyData]) -> dict[str, object]:
-        temp = Path("data") / "_resume_temp.txt"
+        temp = Path(__file__).parent.parent / "data" / "_resume_temp.txt"
         temp.parent.mkdir(parents=True, exist_ok=True)
         temp.write_text(resume_text, encoding="utf-8")
         try:

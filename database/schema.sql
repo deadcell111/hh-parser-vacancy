@@ -5,7 +5,6 @@ CREATE TABLE IF NOT EXISTS vacancies (
     city TEXT,
     salary TEXT,
     url TEXT,
-    relevance_score INTEGER,
     full_text TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );

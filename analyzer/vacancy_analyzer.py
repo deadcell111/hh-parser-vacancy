@@ -31,7 +31,6 @@ class VacancyAnalyzer:
         "Rocky Linux": "Linux", "AlmaLinux": "Linux", "Fedora": "Linux",
         "ESXi": "VMware", "VMware ESXi": "VMware", "vSphere": "VMware", "VMware vSphere": "VMware",
         "vCenter": "VMware",
-        "GitHub": "Git", "GitLab": "Git", "Bitbucket": "Git",
         "AD": "Active Directory", "GPO": "Active Directory", "Group Policy": "Active Directory",
         "групповые политики": "Active Directory",
         "K8s": "Kubernetes", "Kubectl": "Kubernetes",
