@@ -54,10 +54,9 @@ class VacancyAnalyzer:
         vacancy.requirements = self.extract_section_items(vacancy.full_text, self.REQUIREMENT_HEADERS, "requirement")
         skill_text = "\n".join(
             [
-                vacancy.full_text,
                 "\n".join(vacancy.key_skills),
-                "\n".join(vacancy.responsibilities),
                 "\n".join(vacancy.requirements),
+                "\n".join(vacancy.responsibilities),
             ]
         )
         vacancy.skills = self._merge_skills(vacancy.skills, self.extract_skills(skill_text))
