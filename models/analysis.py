@@ -11,7 +11,6 @@ class MarketSummary:
     resume_match: int = 0
     unique_skills: int = 0
     top_skills: list[dict[str, object]] = field(default_factory=list)
-    top_duties: list[dict[str, object]] = field(default_factory=list)
     top_requirements: list[dict[str, object]] = field(default_factory=list)
     missing_skills: list[str] = field(default_factory=list)
 

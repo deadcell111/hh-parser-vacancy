@@ -24,15 +24,6 @@ class VacancyAnalyzer:
     ]
     BAD_ITEM_FRAGMENTS = [
         "мы ждем", "мы ждём", "наш кандидат", "будет преимуществом", "будет плюсом",
-        "понимание принципов", "поддержкой и администри",
-    ]
-    RESPONSIBILITY_HINTS = [
-        "администр", "поддерж", "настрой", "монитор", "резерв", "обслуж", "сопровожд", "управлен",
-        "установ", "обнов", "диагност", "решен", "работа с", "контроль", "разверт",
-    ]
-    REQUIREMENT_HINTS = [
-        "опыт", "знание", "навык", "умение", "понимание", "владение", "работы с", "администрирования",
-        "настройки", "эксплуатации", "сертификат",
     ]
     NORMALIZATION_MAP = {
         "TCP": "TCP/IP", "IP": "TCP/IP", "IPv4": "TCP/IP", "IPv6": "TCP/IP",
@@ -199,10 +190,6 @@ class VacancyAnalyzer:
             return False
         if self._looks_like_header(normalized):
             return False
-        if item_type == "duty":
-            return any(hint in normalized for hint in self.RESPONSIBILITY_HINTS)
-        if item_type == "requirement":
-            return any(hint in normalized for hint in self.REQUIREMENT_HINTS)
         return True
 
     def _unique(self, values: list[str]) -> list[str]:

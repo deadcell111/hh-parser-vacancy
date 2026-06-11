@@ -5,10 +5,7 @@ import sys
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication
 
-from ai.ai_advisor_engine import AIAdvisorEngine
 from ai.gemini_service import GeminiService
-from ai.roadmap_engine import LearningRoadmapEngine
-from ai.resume_gap_engine import ResumeGapEngine
 from analytics.market_analyzer import MarketAnalyzer
 from app.config import load_config
 from app.theme import APP_STYLESHEET
@@ -66,10 +63,6 @@ def run() -> int:
     gemini = GeminiService(config.gemini_api_key, config.gemini_model, ai_cache)
     market_analyzer = MarketAnalyzer()
     market_service = _build_market_service(config, market_analyzer)
-
-    advisor = AIAdvisorEngine(gemini)
-    gap = ResumeGapEngine(gemini)
-    roadmap = LearningRoadmapEngine(gemini)
     exporter = SaaSReportExporter()
 
     app = QApplication(sys.argv)
@@ -78,6 +71,6 @@ def run() -> int:
         app.setAttribute(Qt.ApplicationAttribute.AA_DontShowIconsInMenus, True)
     app.setQuitOnLastWindowClosed(True)
     app.setStyleSheet(APP_STYLESHEET)
-    window = MainWindow(config, market_service, market_analyzer, vacancy_repository, advisor, gap, roadmap, exporter)
+    window = MainWindow(config, market_service, market_analyzer, vacancy_repository, gemini, exporter)
     window.show()
     return app.exec()

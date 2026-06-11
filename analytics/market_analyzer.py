@@ -21,7 +21,6 @@ class MarketAnalyzer:
             resume_match=int((resume_result or {}).get("match_percent", 0)),
             unique_skills=len(skills),
             top_skills=stats["skills"].head(20).to_dict(orient="records") if not stats["skills"].empty else [],
-            top_duties=stats["duties"].head(20).to_dict(orient="records") if not stats["duties"].empty else [],
             top_requirements=stats["requirements"].head(20).to_dict(orient="records") if not stats["requirements"].empty else [],
             missing_skills=list((resume_result or {}).get("missing_skills", []))[:30],
         )

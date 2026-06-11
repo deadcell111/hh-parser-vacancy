@@ -8,18 +8,15 @@ from pathlib import Path
 from PyQt6.QtCore import QThread, pyqtSignal
 from PyQt6.QtWidgets import QFileDialog, QHBoxLayout, QMainWindow, QProgressBar, QStackedWidget, QVBoxLayout, QWidget
 
-from ai.ai_advisor_engine import AIAdvisorEngine
-from ai.roadmap_engine import LearningRoadmapEngine
-from ai.resume_gap_engine import ResumeGapEngine
+from ai.gemini_service import GeminiService
+from ai.prompt_builder import PromptBuilder
 from analytics.market_analyzer import MarketAnalyzer
 from app.config import AppConfig
-from database.db import Database
-from database.repositories import AICacheRepository, VacancyRepository
+from database.repositories import VacancyRepository
 from export.saas_report_exporter import SaaSReportExporter
 from models.analysis import AnalysisState
 from resume_checker.resume_checker import ResumeChecker
 from services.market_service import MarketService
-
 from ui.analytics_pages import TopTablePage
 from ui.exports_page import ExportsPage
 from ui.market_page import MarketPage
@@ -27,7 +24,6 @@ from ui.navigation import NavigationSidebar
 from ui.settings_page import SettingsPage
 from ui.text_report_page import TextReportPage
 from ui.resume_gap_page import ResumeGapPage
-from ai.prompt_builder import PromptBuilder
 
 
 class MarketWorker(QThread):
@@ -50,23 +46,20 @@ class MarketWorker(QThread):
             self.failed.emit(str(exc))
 
 
-
 class AIWorker(QThread):
     completed = pyqtSignal(object, object, object)
     failed = pyqtSignal(str)
 
-    def __init__(self, advisor: AIAdvisorEngine, gap: ResumeGapEngine, roadmap: LearningRoadmapEngine, payload: dict[str, object]) -> None:
+    def __init__(self, gemini: GeminiService, payload: dict[str, object]) -> None:
         super().__init__()
-        self.advisor = advisor
-        self.gap = gap
-        self.roadmap = roadmap
+        self.gemini = gemini
         self.payload = payload
 
     def run(self) -> None:
         try:
             async def task():
                 prompt = PromptBuilder().combined_prompt(self.payload)
-                response = await self.advisor.gemini.generate_json(prompt)
+                response = await self.gemini.generate_json(prompt)
                 return (
                     response.get("advisor", {}),
                     response.get("resume_gap", {}),
@@ -116,9 +109,7 @@ class MainWindow(QMainWindow):
         market_service: MarketService,
         market_analyzer: MarketAnalyzer,
         vacancy_repository: VacancyRepository,
-        advisor_engine: AIAdvisorEngine,
-        gap_engine: ResumeGapEngine,
-        roadmap_engine: LearningRoadmapEngine,
+        gemini: GeminiService,
         exporter: SaaSReportExporter,
     ) -> None:
         super().__init__()
@@ -126,9 +117,7 @@ class MainWindow(QMainWindow):
         self.market_service = market_service
         self.market_analyzer = market_analyzer
         self.vacancy_repository = vacancy_repository
-        self.advisor_engine = advisor_engine
-        self.gap_engine = gap_engine
-        self.roadmap_engine = roadmap_engine
+        self.gemini = gemini
         self.exporter = exporter
         self.resume_checker = ResumeChecker()
         self.state = AnalysisState()
@@ -183,20 +172,9 @@ class MainWindow(QMainWindow):
         self.pages["settings"].settings_saved.connect(self._save_settings)  # type: ignore[attr-defined]
 
     def _navigate(self, page_id: str) -> None:
-        mapping = {
-            "market": "market",
-            "top_skills": "top_skills",
-            "top_requirements": "top_requirements",
-            "advisor": "advisor",
-            "resume": "resume",
-            "roadmap": "roadmap",
-            "exports": "exports",
-            "settings": "settings",
-        }
-        target = mapping.get(page_id, "market")
-        self.current_page_id = target
-        self.stack.setCurrentWidget(self.pages[target])
-        self._refresh_page(target)
+        self.current_page_id = page_id
+        self.stack.setCurrentWidget(self.pages.get(page_id, self.pages["market"]))
+        self._refresh_page(page_id)
 
     def _run_market(self, query: str, region: str, pages: int, workers: int) -> None:
         self.progress.show()
@@ -213,7 +191,7 @@ class MainWindow(QMainWindow):
         self._refresh_page(self.current_page_id)
         self.pages["market"].set_status(f"Done in {elapsed:.1f}s, {speed:.1f} vacancies/min. Generating AI...")  # type: ignore[attr-defined]
         payload = self.market_analyzer.to_ai_payload(state.summary)
-        self.ai_worker = AIWorker(self.advisor_engine, self.gap_engine, self.roadmap_engine, payload)
+        self.ai_worker = AIWorker(self.gemini, payload)
         self.ai_worker.completed.connect(self._ai_completed)
         self.ai_worker.failed.connect(self._task_failed)
         self.ai_worker.start()
@@ -237,7 +215,7 @@ class MainWindow(QMainWindow):
             self._mark_dirty()
             self._refresh_page(self.current_page_id)
             payload = self.market_analyzer.to_ai_payload(self.state.summary)
-            self.ai_worker = AIWorker(self.advisor_engine, self.gap_engine, self.roadmap_engine, payload)
+            self.ai_worker = AIWorker(self.gemini, payload)
             self.ai_worker.completed.connect(self._ai_completed)
             self.ai_worker.failed.connect(self._task_failed)
             self.ai_worker.start()
@@ -280,10 +258,6 @@ class MainWindow(QMainWindow):
     def _save_settings(self, api_key: str, model: str) -> None:
         path = self.config.database_path.parent / "settings.local.json"
         path.write_text(json.dumps({"gemini_api_key": api_key, "gemini_model": model}, ensure_ascii=False, indent=2), encoding="utf-8")
-        self.advisor_engine.gemini.api_key = api_key
-        self.gap_engine.gemini.api_key = api_key
-        self.roadmap_engine.gemini.api_key = api_key
-        self.advisor_engine.gemini.model = model
-        self.gap_engine.gemini.model = model
-        self.roadmap_engine.gemini.model = model
+        self.gemini.api_key = api_key
+        self.gemini.model = model
         self.pages["settings"].set_status("Settings saved locally. API key is not committed.")  # type: ignore[attr-defined]
