@@ -7,7 +7,7 @@ class PromptBuilder:
     def combined_prompt(self, payload: dict[str, object]) -> str:
         return self._json_prompt(
             "Ты карьерный аналитик для IT-рынка. Верни строгий JSON без markdown с тремя объектами: "
-            "advisor={current_level, market_match, top_strengths, critical_gaps, salary_potential, recommendations, market_overview}; "
+            "advisor={current_level, market_match, top_strengths, critical_gaps, recommendations, market_overview}; "
             "resume_gap={missing_skills, missing_technologies, knowledge_gaps, salary_growth_skills, summary}; "
             "roadmap={weeks:[{week, skills, why, market_frequency, career_impact, practice_task}]}.",
             payload,
@@ -16,7 +16,7 @@ class PromptBuilder:
     def advisor_prompt(self, payload: dict[str, object]) -> str:
         return self._json_prompt(
             "Ты карьерный аналитик для IT-рынка. Верни строгий JSON с полями: "
-            "current_level, market_match, top_strengths, critical_gaps, salary_potential, recommendations, market_overview.",
+            "current_level, market_match, top_strengths, critical_gaps, recommendations, market_overview.",
             payload,
         )
 

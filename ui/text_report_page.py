@@ -62,7 +62,7 @@ class TextReportPage(QWidget):
             "market_match": "Market Match",
             "top_strengths": "Top Strengths",
             "critical_gaps": "Critical Gaps",
-            "salary_potential": "Salary Potential",
+
             "recommendations": "Recommendations",
             "market_overview": "Market Overview",
             "missing_skills": "Missing Skills",
