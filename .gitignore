@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.venv/
+.env
+data/logs/
+data/settings.local.json
+data/*.sqlite3
+vacancy_analysis.xlsx
+top_skills.xlsx
+build/
+dist/
+*.spec
