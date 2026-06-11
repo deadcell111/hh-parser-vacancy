@@ -8,8 +8,6 @@ from parser.models import VacancyData
 @dataclass
 class MarketSummary:
     vacancies_found: int = 0
-    vacancies_admitted: int = 0
-    vacancies_filtered: int = 0
     average_salary: int = 0
     resume_match: int = 0
     unique_skills: int = 0
@@ -22,7 +20,6 @@ class MarketSummary:
 @dataclass
 class AnalysisState:
     vacancies: list[VacancyData] = field(default_factory=list)
-    filtered_vacancies: list[VacancyData] = field(default_factory=list)
     summary: MarketSummary = field(default_factory=MarketSummary)
     resume_result: dict[str, object] | None = None
     ai_advisor: dict[str, object] | None = None

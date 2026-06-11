@@ -20,7 +20,6 @@ class AppConfig:
     default_region: str = "Алматы"
     default_pages: int = 1
     default_workers: int = 5
-    min_relevance: int = 50
 
 
 def load_config() -> AppConfig:

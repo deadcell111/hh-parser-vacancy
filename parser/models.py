@@ -28,11 +28,6 @@ class VacancyData:
     requirements: list[str] = field(default_factory=list)
     skills: list[dict[str, str]] = field(default_factory=list)
 
-    relevance_score: int = 0
-    is_relevant: bool = True
-    exclusion_reason: str = ""
-    relevance_details: list[str] = field(default_factory=list)
-
     @property
     def display_name(self) -> str:
         return self.title or self.url

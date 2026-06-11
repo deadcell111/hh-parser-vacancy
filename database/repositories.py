@@ -14,15 +14,14 @@ class VacancyRepository:
         with self.database.connect() as connection:
             connection.executemany(
                 """
-                INSERT INTO vacancies(id, title, company, city, salary, url, relevance_score, full_text)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO vacancies(id, title, company, city, salary, url, full_text)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     title=excluded.title,
                     company=excluded.company,
                     city=excluded.city,
                     salary=excluded.salary,
                     url=excluded.url,
-                    relevance_score=excluded.relevance_score,
                     full_text=excluded.full_text
                 """,
                 [
@@ -33,7 +32,6 @@ class VacancyRepository:
                         vacancy.city,
                         vacancy.salary,
                         vacancy.url,
-                        vacancy.relevance_score,
                         vacancy.full_text,
                     )
                     for vacancy in vacancies

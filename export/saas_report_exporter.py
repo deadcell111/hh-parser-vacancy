@@ -42,8 +42,6 @@ class SaaSReportExporter:
         painter.setFont(QFont("Arial", 10))
         lines = [
             f"Vacancies found: {state.summary.vacancies_found}",
-            f"Admitted: {state.summary.vacancies_admitted}",
-            f"Filtered: {state.summary.vacancies_filtered}",
             f"Average salary: {state.summary.average_salary}",
             f"Resume match: {state.summary.resume_match}%",
             f"Unique skills: {state.summary.unique_skills}",
@@ -61,7 +59,6 @@ class SaaSReportExporter:
                 "Company": v.company,
                 "City": v.city,
                 "Salary": v.salary,
-                "Relevance": v.relevance_score,
                 "URL": v.url,
             }
             for v in state.vacancies
@@ -73,8 +70,6 @@ class SaaSReportExporter:
         ]
         market = [
             {"Metric": "Vacancies found", "Value": state.summary.vacancies_found},
-            {"Metric": "Vacancies admitted", "Value": state.summary.vacancies_admitted},
-            {"Metric": "Vacancies filtered", "Value": state.summary.vacancies_filtered},
             {"Metric": "Average salary", "Value": state.summary.average_salary},
             {"Metric": "Resume match", "Value": state.summary.resume_match},
             {"Metric": "Unique skills", "Value": state.summary.unique_skills},

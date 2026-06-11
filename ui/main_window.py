@@ -34,18 +34,17 @@ class MarketWorker(QThread):
     completed = pyqtSignal(object, float, float)
     failed = pyqtSignal(str)
 
-    def __init__(self, service: MarketService, query: str, region: str, pages: int, workers: int, min_relevance: int) -> None:
+    def __init__(self, service: MarketService, query: str, region: str, pages: int, workers: int) -> None:
         super().__init__()
         self.service = service
         self.query = query
         self.region = region
         self.pages = pages
         self.workers = workers
-        self.min_relevance = min_relevance
 
     def run(self) -> None:
         try:
-            result = self.service.analyze_search(self.query, self.region, self.pages, self.workers, self.min_relevance)
+            result = self.service.analyze_search(self.query, self.region, self.pages, self.workers)
             self.completed.emit(result.state, result.elapsed_seconds, result.vacancies_per_minute)
         except Exception as exc:
             self.failed.emit(str(exc))
@@ -55,16 +54,15 @@ class UrlAnalysisWorker(QThread):
     completed = pyqtSignal(object, float, float)
     failed = pyqtSignal(str)
 
-    def __init__(self, service: MarketService, urls: list[str], workers: int, min_relevance: int) -> None:
+    def __init__(self, service: MarketService, urls: list[str], workers: int) -> None:
         super().__init__()
         self.service = service
         self.urls = urls
         self.workers = workers
-        self.min_relevance = min_relevance
 
     def run(self) -> None:
         try:
-            result = self.service.analyze_urls(self.urls, self.workers, self.min_relevance)
+            result = self.service.analyze_urls(self.urls, self.workers)
             self.completed.emit(result.state, result.elapsed_seconds, result.vacancies_per_minute)
         except Exception as exc:
             self.failed.emit(str(exc))
@@ -219,10 +217,10 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentWidget(self.pages[target])
         self._refresh_page(target)
 
-    def _run_market(self, query: str, region: str, pages: int, workers: int, min_relevance: int) -> None:
+    def _run_market(self, query: str, region: str, pages: int, workers: int) -> None:
         self.progress.show()
         self.pages["market"].set_status("Running market analysis...")  # type: ignore[attr-defined]
-        self.market_worker = MarketWorker(self.market_service, query, region, pages, workers, min_relevance)
+        self.market_worker = MarketWorker(self.market_service, query, region, pages, workers)
         self.market_worker.completed.connect(self._market_completed)
         self.market_worker.failed.connect(self._task_failed)
         self.market_worker.start()
@@ -241,7 +239,7 @@ class MainWindow(QMainWindow):
     def _run_urls(self, urls: list[str]) -> None:
         self.progress.show()
         self.pages["market"].set_status("Analyzing imported vacancies...")  # type: ignore[attr-defined]
-        self.url_worker = UrlAnalysisWorker(self.market_service, urls, self.config.default_workers, self.config.min_relevance)
+        self.url_worker = UrlAnalysisWorker(self.market_service, urls, self.config.default_workers)
         self.url_worker.completed.connect(self._market_completed)
         self.url_worker.failed.connect(self._task_failed)
         self.url_worker.start()
@@ -273,7 +271,7 @@ class MainWindow(QMainWindow):
             return
         try:
             self.state.resume_result = self.resume_checker.compare(path, self.state.vacancies)
-            self.state.summary = self.market_analyzer.summarize(self.state.vacancies, self.state.filtered_vacancies, self.state.resume_result)
+            self.state.summary = self.market_analyzer.summarize(self.state.vacancies, self.state.resume_result)
             self._mark_dirty()
             self._refresh_page(self.current_page_id)
             payload = self.market_analyzer.to_ai_payload(self.state.summary)

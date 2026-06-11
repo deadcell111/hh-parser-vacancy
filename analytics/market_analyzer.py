@@ -14,7 +14,6 @@ class MarketAnalyzer:
     def summarize(
         self,
         vacancies: list[VacancyData],
-        filtered_vacancies: list[VacancyData],
         resume_result: dict[str, object] | None = None,
     ) -> MarketSummary:
         stats = self.vacancy_analyzer.build_market_statistics(vacancies)
@@ -22,9 +21,7 @@ class MarketAnalyzer:
         salaries = [salary for salary in salaries if salary > 0]
         skills = {skill["name"] for vacancy in vacancies for skill in vacancy.skills}
         return MarketSummary(
-            vacancies_found=len(vacancies) + len(filtered_vacancies),
-            vacancies_admitted=len(vacancies),
-            vacancies_filtered=len(filtered_vacancies),
+            vacancies_found=len(vacancies),
             average_salary=round(sum(salaries) / len(salaries)) if salaries else 0,
             resume_match=int((resume_result or {}).get("match_percent", 0)),
             unique_skills=len(skills),
@@ -36,9 +33,7 @@ class MarketAnalyzer:
 
     def to_ai_payload(self, summary: MarketSummary) -> dict[str, object]:
         return {
-            "vacancies": summary.vacancies_admitted,
-            "vacancies_found": summary.vacancies_found,
-            "filtered": summary.vacancies_filtered,
+            "vacancies": summary.vacancies_found,
             "average_salary": summary.average_salary,
             "resume_match": summary.resume_match,
             "unique_skills": summary.unique_skills,
