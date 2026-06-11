@@ -34,7 +34,6 @@ class MarketAnalyzer:
     def to_ai_payload(self, summary: MarketSummary) -> dict[str, object]:
         return {
             "vacancies": summary.vacancies_found,
-            "average_salary": summary.average_salary,
             "resume_match": summary.resume_match,
             "unique_skills": summary.unique_skills,
             "top_skills": summary.top_skills,
