@@ -6,12 +6,10 @@ from PyQt6.QtWidgets import QFormLayout, QHBoxLayout, QLabel, QLineEdit, QPushBu
 from app.theme import Theme
 
 _DEFAULT_WORKERS = 5
-_DEFAULT_MIN_RELEVANCE = 50
 
 
 class MarketPage(QWidget):
-    run_requested = pyqtSignal(str, str, int, int, int)
-    import_requested = pyqtSignal()
+    run_requested = pyqtSignal(str, str, int, int)
 
     def __init__(self) -> None:
         super().__init__()
@@ -44,10 +42,7 @@ class MarketPage(QWidget):
         self.run_button = QPushButton("Запустить анализ")
         self.run_button.setObjectName("PrimaryButton")
         self.run_button.clicked.connect(self._emit_run)
-        import_button = QPushButton("Импорт TXT / CSV / XLSX")
-        import_button.clicked.connect(self.import_requested.emit)
         buttons.addWidget(self.run_button)
-        buttons.addWidget(import_button)
         buttons.addStretch()
         layout.addLayout(buttons)
 
@@ -65,5 +60,4 @@ class MarketPage(QWidget):
             self.region_input.text(),
             self.pages_input.value(),
             _DEFAULT_WORKERS,
-            _DEFAULT_MIN_RELEVANCE,
         )

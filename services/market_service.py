@@ -34,10 +34,6 @@ class MarketService:
     def analyze_search(self, query: str, region: str, pages: int, workers: int) -> MarketRunResult:
         started = time.perf_counter()
         urls = self.collector.collect(query, region, pages)
-        return self.analyze_urls(urls, workers, started)
-
-    def analyze_urls(self, urls: list[str], workers: int, started: float | None = None) -> MarketRunResult:
-        started = started or time.perf_counter()
         vacancies = [self.analyzer.analyze(v) for v in self.parser.parse_many(urls, workers=workers)]
         summary = self.market_analyzer.summarize(vacancies)
         elapsed = max(time.perf_counter() - started, 0.001)

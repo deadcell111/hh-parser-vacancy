@@ -19,7 +19,7 @@ from export.saas_report_exporter import SaaSReportExporter
 from models.analysis import AnalysisState
 from resume_checker.resume_checker import ResumeChecker
 from services.market_service import MarketService
-from utils.url_loader import load_urls
+
 from ui.analytics_pages import TopTablePage
 from ui.exports_page import ExportsPage
 from ui.market_page import MarketPage
@@ -49,23 +49,6 @@ class MarketWorker(QThread):
         except Exception as exc:
             self.failed.emit(str(exc))
 
-
-class UrlAnalysisWorker(QThread):
-    completed = pyqtSignal(object, float, float)
-    failed = pyqtSignal(str)
-
-    def __init__(self, service: MarketService, urls: list[str], workers: int) -> None:
-        super().__init__()
-        self.service = service
-        self.urls = urls
-        self.workers = workers
-
-    def run(self) -> None:
-        try:
-            result = self.service.analyze_urls(self.urls, self.workers)
-            self.completed.emit(result.state, result.elapsed_seconds, result.vacancies_per_minute)
-        except Exception as exc:
-            self.failed.emit(str(exc))
 
 
 class AIWorker(QThread):
@@ -150,7 +133,6 @@ class MainWindow(QMainWindow):
         self.resume_checker = ResumeChecker()
         self.state = AnalysisState()
         self.market_worker: MarketWorker | None = None
-        self.url_worker: UrlAnalysisWorker | None = None
         self.ai_worker: AIWorker | None = None
         self.export_worker: ExportWorker | None = None
         self.current_page_id = "market"
@@ -196,7 +178,6 @@ class MainWindow(QMainWindow):
 
         self.sidebar.page_changed.connect(self._navigate)
         self.pages["market"].run_requested.connect(self._run_market)  # type: ignore[attr-defined]
-        self.pages["market"].import_requested.connect(self._import_urls)  # type: ignore[attr-defined]
         self.pages["resume"].resume_upload_requested.connect(self._upload_resume)  # type: ignore[attr-defined]
         self.pages["exports"].export_requested.connect(self._export)  # type: ignore[attr-defined]
         self.pages["settings"].settings_saved.connect(self._save_settings)  # type: ignore[attr-defined]
@@ -224,25 +205,6 @@ class MainWindow(QMainWindow):
         self.market_worker.completed.connect(self._market_completed)
         self.market_worker.failed.connect(self._task_failed)
         self.market_worker.start()
-
-    def _import_urls(self) -> None:
-        path, _ = QFileDialog.getOpenFileName(self, "Import URLs", "", "URL files (*.txt *.csv *.xlsx *.xls);;All files (*.*)")
-        if not path:
-            return
-        try:
-            urls = load_urls(path)
-        except Exception as exc:
-            self._task_failed(str(exc))
-            return
-        self._run_urls(urls)
-
-    def _run_urls(self, urls: list[str]) -> None:
-        self.progress.show()
-        self.pages["market"].set_status("Analyzing imported vacancies...")  # type: ignore[attr-defined]
-        self.url_worker = UrlAnalysisWorker(self.market_service, urls, self.config.default_workers)
-        self.url_worker.completed.connect(self._market_completed)
-        self.url_worker.failed.connect(self._task_failed)
-        self.url_worker.start()
 
     def _market_completed(self, state: AnalysisState, elapsed: float, speed: float) -> None:
         self.state = state
