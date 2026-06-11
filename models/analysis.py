@@ -21,4 +21,3 @@ class AnalysisState:
     summary: MarketSummary = field(default_factory=MarketSummary)
     resume_result: dict[str, object] | None = None
     ai_advisor: dict[str, object] | None = None
-    roadmap: dict[str, object] | None = None

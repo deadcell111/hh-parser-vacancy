@@ -47,7 +47,7 @@ class MarketWorker(QThread):
 
 
 class AIWorker(QThread):
-    completed = pyqtSignal(object, object, object)
+    completed = pyqtSignal(object, object)
     failed = pyqtSignal(str)
 
     def __init__(self, gemini: GeminiService, payload: dict[str, object]) -> None:
@@ -63,17 +63,16 @@ class AIWorker(QThread):
                 return (
                     response.get("advisor", {}),
                     response.get("resume_gap", {}),
-                    response.get("roadmap", {}),
                 )
 
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
-                advisor, gap, roadmap = loop.run_until_complete(task())
+                advisor, gap = loop.run_until_complete(task())
             finally:
                 loop.close()
                 asyncio.set_event_loop(None)
-            self.completed.emit(advisor, gap, roadmap)
+            self.completed.emit(advisor, gap)
         except Exception as exc:
             self.failed.emit(str(exc))
 
@@ -142,7 +141,6 @@ class MainWindow(QMainWindow):
             "market": MarketPage(),
             "advisor": TextReportPage("AI Advisor", "ai_advisor"),
             "resume": ResumeGapPage(),
-            "roadmap": TextReportPage("Learning Roadmap", "roadmap"),
             "exports": ExportsPage(),
             "settings": SettingsPage(self.config.gemini_api_key, self.config.gemini_model),
         }
@@ -158,7 +156,7 @@ class MainWindow(QMainWindow):
         content_layout.addWidget(self.progress)
         content_layout.addWidget(self.stack)
 
-        for page_id in ["market", "top_skills", "top_requirements", "advisor", "resume", "roadmap", "exports", "settings"]:
+        for page_id in ["market", "top_skills", "top_requirements", "advisor", "resume", "exports", "settings"]:
             self.stack.addWidget(self.pages[page_id])
 
         layout.addWidget(self.sidebar)
@@ -196,10 +194,9 @@ class MainWindow(QMainWindow):
         self.ai_worker.failed.connect(self._task_failed)
         self.ai_worker.start()
 
-    def _ai_completed(self, advisor: dict, gap: dict, roadmap: dict) -> None:
+    def _ai_completed(self, advisor: dict, gap: dict) -> None:
         self.state.ai_advisor = advisor
         self.state.resume_result = gap
-        self.state.roadmap = roadmap
         self.progress.hide()
         self.pages["market"].set_status("Market analysis and AI reports completed.")  # type: ignore[attr-defined]
         self._mark_dirty()

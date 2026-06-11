@@ -81,7 +81,6 @@ class SaaSReportExporter:
             "Market Analysis": pd.DataFrame(state.summary.top_skills),
             "Resume Analysis": pd.DataFrame(self._dict_rows(state.resume_result)),
             "AI Advisor": pd.DataFrame(self._dict_rows(state.ai_advisor)),
-            "Learning Roadmap": pd.DataFrame(self._roadmap_rows(state.roadmap)),
         }
 
     def _dict_rows(self, value: dict | None) -> list[dict[str, object]]:
@@ -89,11 +88,6 @@ class SaaSReportExporter:
             return []
         return [{"Section": key, "Value": item} for key, item in value.items()]
 
-    def _roadmap_rows(self, value: dict | None) -> list[dict[str, object]]:
-        if not value:
-            return []
-        weeks = value.get("weeks", []) if isinstance(value, dict) else []
-        return weeks if isinstance(weeks, list) else []
 
     def _format(self, path: Path) -> None:
         workbook = load_workbook(path)

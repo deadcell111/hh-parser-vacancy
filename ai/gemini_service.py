@@ -86,5 +86,4 @@ class GeminiService:
                 "knowledge_gaps": [],
                 "summary": "Недоступно без Gemini API.",
             },
-            "roadmap": {"weeks": []},
         }

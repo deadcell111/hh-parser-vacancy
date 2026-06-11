@@ -51,9 +51,6 @@ class TextReportPage(QWidget):
         if not value:
             self._empty()
             return
-        if self.state_attr == "roadmap":
-            self._roadmap(value)
-            return
         self._report(value)
 
     def _report(self, value: dict[str, object]) -> None:
@@ -77,22 +74,6 @@ class TextReportPage(QWidget):
             self.content_layout.addWidget(card)
         self.content_layout.addStretch()
 
-    def _roadmap(self, value: dict[str, object]) -> None:
-        weeks = value.get("weeks", []) if isinstance(value, dict) else []
-        if not weeks:
-            self._empty()
-            return
-        for week in weeks:
-            if not isinstance(week, dict):
-                continue
-            card = SectionCard(f"Week {week.get('week', '')}")
-            card.add_text("Skills: " + ", ".join(map(str, week.get("skills", []))))
-            card.add_text("Why: " + str(week.get("why", "")))
-            card.add_text("Frequency: " + str(week.get("market_frequency", "")))
-            card.add_text("Career impact: " + str(week.get("career_impact", "")))
-            card.add_text("Practice: " + str(week.get("practice_task", "")))
-            self.content_layout.addWidget(card)
-        self.content_layout.addStretch()
 
     def _empty(self) -> None:
         card = SectionCard("No data yet")

@@ -8,8 +8,7 @@ class PromptBuilder:
         return self._json_prompt(
             "Ты карьерный аналитик для IT-рынка. Верни строгий JSON без markdown с тремя объектами: "
             "advisor={current_level, market_match, top_strengths, critical_gaps, recommendations, market_overview}; "
-            "resume_gap={missing_skills, missing_technologies, knowledge_gaps, summary}; "
-            "roadmap={weeks:[{week, skills, why, market_frequency, career_impact, practice_task}]}.",
+            "resume_gap={missing_skills, missing_technologies, knowledge_gaps, summary}.",
             payload,
         )
 
@@ -26,11 +25,6 @@ class PromptBuilder:
             payload,
         )
 
-    def roadmap_prompt(self, payload: dict[str, object]) -> str:
-        return self._json_prompt(
-            "Построй 6-недельный learning roadmap. Верни строгий JSON: weeks=[{week, skills, why, market_frequency, career_impact, practice_task}].",
-            payload,
-        )
 
     def _json_prompt(self, instruction: str, payload: dict[str, object]) -> str:
         return f"{instruction}\n\nДанные рынка, агрегировано, без сырых вакансий:\n{json.dumps(payload, ensure_ascii=False, indent=2)}"

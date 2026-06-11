@@ -13,7 +13,7 @@ class NavigationSidebar(QFrame):
         ("top_requirements", "   ТОП требований"),
         ("advisor", "🧠  AI Advisor"),
         ("resume", "📋  Resume Gap Analysis"),
-        ("roadmap", "🛣  Learning Roadmap"),
+
         ("exports", "📁  Exports"),
         ("settings", "⚙  Settings"),
     ]
